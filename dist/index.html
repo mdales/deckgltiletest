@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset='UTF-8' />
+    <title>deck.gl example</title>
+    <style>
+    #container {
+      width: 1000px;
+      height: 800px;
+    }
+    #container > * {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1000px;
+      height: 800px;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="map"></div>
+      <canvas id="deck-canvas"></canvas>
+    </div>
+    <div id="when">
+        <span id="current_year">2001</span>
+        <input style='width: 700px' type="range" id="year" min="2001" max="2020" step="1" value="2001" />
+    </div>
+    <script src='main.js'></script>
+  </body>
+</html>
