@@ -8,12 +8,14 @@ const AIR_PORTS =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson';
 
 const INITIAL_VIEW_STATE = {
-  latitude: 1,
-  longitude: -78,
+  latitude: 8.484,
+  longitude: -13.2344,
   zoom: 7,
   bearing: 0,
   pitch: 30
 };
+
+const TILE_POSTFIX = '_10N_020W'
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -25,9 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   for (let i = 2001; i <= 2020; i++ ) {
-    sources[String(i)] = {
+    sources[String(i) + TILE_POSTFIX] = {
         type: 'raster',
-        url: 'http://' + MAPTILE_SERVER_HOST_AND_PORT + '/services/' + i + '_10N_080W/',
+        url: 'http://' + MAPTILE_SERVER_HOST_AND_PORT + '/services/' + i + TILE_POSTFIX + '/',
         tileSize: 256,
         attribution: '4C Kartor Fabrik'
     }
@@ -46,9 +48,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     'visibility': 'visible',
                   },
                   'paint': {
-                    'background-color': '#fafaf8',
+                    'background-color': '#000',
                     'background-opacity': 1
                   }
+                },
+                {
+                    'id': '2010' + TILE_POSTFIX,
+                    'type': 'raster',
+                    'source': '2010' + TILE_POSTFIX,
+                    'minzoom': 4,
+                    'maxzoom': 12
                 },
                 {
                   "id": "landcover",
@@ -325,13 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                   }
                 },
-                  {
-                      'id': '2001',
-                      'type': 'raster',
-                      'source': '2001',
-                      'minzoom': 4,
-                      'maxzoom': 12
-                  }
               ]
           },
     interactive: false,
@@ -385,27 +387,28 @@ document.addEventListener("DOMContentLoaded", () => {
       })
     ]
   });
-  let last_year = 2001;
+  let last_year = 2010;
   document.getElementById('year').addEventListener('change', (event) => {
       const new_year = event.target.value;
       document.getElementById('current_year').textContent = event.target.value;
 
-      // const current_layer = map.getLayer(String(last_year));
-      map.setLayoutProperty(String(last_year), 'visibility', 'none');
-
-      const layer = map.getLayer(String(new_year));
+      const layer = map.getLayer(String(new_year) + TILE_POSTFIX);
       if (layer === undefined) {
           map.addLayer({
-              'id': String(new_year),
+              'id': String(new_year) + TILE_POSTFIX,
               'type': 'raster',
-              'source': String(new_year),
+              'source': String(new_year) + TILE_POSTFIX,
               'minzoom': 4,
               'maxzoom': 12
-          });
+          }, 'landcover');
       } else {
-          map.setLayoutProperty(String(new_year), 'visibility', 'visible')
+          map.setLayoutProperty(String(new_year) + TILE_POSTFIX, 'visibility', 'visible');
       }
 
+      const old_layer = String(last_year) + TILE_POSTFIX;
+      setTimeout(() => {
+        map.setLayoutProperty(old_layer, 'visibility', 'none');
+      }, 250);
       last_year = new_year;
   });
 });
