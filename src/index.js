@@ -15,9 +15,12 @@ const INITIAL_VIEW_STATE = {
   pitch: 30
 };
 
-const TILE_POSTFIX = '_10N_020W'
+const TILE_POSTFIX = '_10N_020W';
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  const USING_DECK_GL = document.getElementById('deck-canvas') != undefined;
+  console.log("Using deck.gl: " + USING_DECK_GL);
 
   let sources = {
     'carto': {
@@ -336,57 +339,59 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
               ]
           },
-    interactive: false,
+    interactive: !USING_DECK_GL,
     center: [INITIAL_VIEW_STATE.longitude, INITIAL_VIEW_STATE.latitude],
     zoom: INITIAL_VIEW_STATE.zoom,
     bearing: INITIAL_VIEW_STATE.bearing,
     pitch: INITIAL_VIEW_STATE.pitch
   });
 
-   const deck = new Deck({
-    canvas: 'deck-canvas',
-    width: '1000px',
-    height: '800px',
-    initialViewState: INITIAL_VIEW_STATE,
-    controller: true,
-    onViewStateChange: ({viewState}) => {
-      map.jumpTo({
-        center: [viewState.longitude, viewState.latitude],
-        zoom: viewState.zoom,
-        bearing: viewState.bearing,
-        pitch: viewState.pitch
-      });
-    },
-    layers: [
-      new GeoJsonLayer({
-        id: 'airports',
-        data: AIR_PORTS,
-        // Styles
-        filled: true,
-        pointRadiusMinPixels: 2,
-        pointRadiusScale: 2000,
-        getPointRadius: f => 11 - f.properties.scalerank,
-        getFillColor: [200, 0, 80, 180],
-        // Interactive props
-        pickable: true,
-        autoHighlight: true,
-        onClick: info =>
-          // eslint-disable-next-line
-          info.object && alert(`${info.object.properties.name} (${info.object.properties.abbrev})`)
-      }),
-      new ArcLayer({
-        id: 'arcs',
-        data: AIR_PORTS,
-        dataTransform: d => d.features.filter(f => f.properties.scalerank < 4),
-        // Styles
-        getSourcePosition: f => [-78, 1],
-        getTargetPosition: f => f.geometry.coordinates,
-        getSourceColor: [0, 128, 200],
-        getTargetColor: [200, 0, 80],
-        getWidth: 1
-      })
-    ]
-  });
+  if (USING_DECK_GL) {
+    const deck = new Deck({
+      canvas: 'deck-canvas',
+      width: '1000px',
+      height: '800px',
+      initialViewState: INITIAL_VIEW_STATE,
+      controller: true,
+      onViewStateChange: ({viewState}) => {
+        map.jumpTo({
+          center: [viewState.longitude, viewState.latitude],
+          zoom: viewState.zoom,
+          bearing: viewState.bearing,
+          pitch: viewState.pitch
+        });
+      },
+      layers: [
+        new GeoJsonLayer({
+          id: 'airports',
+          data: AIR_PORTS,
+          // Styles
+          filled: true,
+          pointRadiusMinPixels: 2,
+          pointRadiusScale: 2000,
+          getPointRadius: f => 11 - f.properties.scalerank,
+          getFillColor: [200, 0, 80, 180],
+          // Interactive props
+          pickable: true,
+          autoHighlight: true,
+          onClick: info =>
+            // eslint-disable-next-line
+            info.object && alert(`${info.object.properties.name} (${info.object.properties.abbrev})`)
+        }),
+        new ArcLayer({
+          id: 'arcs',
+          data: AIR_PORTS,
+          dataTransform: d => d.features.filter(f => f.properties.scalerank < 4),
+          // Styles
+          getSourcePosition: f => [-78, 1],
+          getTargetPosition: f => f.geometry.coordinates,
+          getSourceColor: [0, 128, 200],
+          getTargetColor: [200, 0, 80],
+          getWidth: 1
+        })
+      ]
+    });
+  }
   let last_year = 2010;
   document.getElementById('year').addEventListener('change', (event) => {
       const new_year = event.target.value;
