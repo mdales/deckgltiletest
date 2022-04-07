@@ -45,26 +45,12 @@ function update_year(new_year) {
 	}
 }
 
+let hansen_layers = []
+
 document.addEventListener("DOMContentLoaded", () => {
 
 	const USING_DECK_GL = document.getElementById('deck-canvas') != undefined;
 	console.log("Using deck.gl: " + USING_DECK_GL);
-
-	let sources = {
-		'carto': {
-			'type': 'vector',
-			'url': 'https://tiles.basemaps.cartocdn.com/vector/carto.streets/v1/tiles.json'
-		},
-	};
-
-	for (let i = 2001; i <= 2020; i++ ) {
-		sources[String(i) + TILE_POSTFIX] = {
-			type: 'raster',
-			url: 'http://' + MAPTILE_SERVER_HOST_AND_PORT + '/services/' + i + TILE_POSTFIX + '/',
-			tileSize: 256,
-			attribution: '4C Kartor Fabrik'
-		}
-	};
 
 	map = new maplibregl.Map({
 		container: 'map',
@@ -76,15 +62,33 @@ document.addEventListener("DOMContentLoaded", () => {
 		pitch: INITIAL_VIEW_STATE.pitch
 	});
 
-	map.on('load', () => {
-		for (let i = 2001; i <= 2020; i++ ) {
-			map.addSource(String(i) + TILE_POSTFIX, {
+	const layer_promise = new Promise((resolve) => {
+		const request = new XMLHttpRequest();
+		request.open('GET', 'http://' + MAPTILE_SERVER_HOST_AND_PORT + '/services/');
+		request.addEventListener('load', (event) => {
+			hansen_layers = JSON.parse(request.response);
+			resolve(true);
+		});
+		request.addEventListener('error', (event) => {
+			resolve(false);
+		});
+		request.send();
+	});
+	const map_promise = new Promise((resolve) => {
+		map.on('load', () => {
+			resolve(true);
+		});
+	});
+
+	Promise.all([layer_promise, map_promise]).then((values) => {
+		hansen_layers.forEach((layer) => {
+			map.addSource(layer.name, {
 				type: 'raster',
-				url: 'http://' + MAPTILE_SERVER_HOST_AND_PORT + '/services/' + i + TILE_POSTFIX + '/',
+				url: layer.url,
 				tileSize: 256,
 				attribution: '4C Kartor Fabrik'
 			});
-		}
+		});
 		update_year(2010);
 	});
 
