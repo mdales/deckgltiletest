@@ -45,6 +45,24 @@ function update_year(new_year) {
 	}
 }
 
+function loop(new_year) {
+    const button = document.getElementById('play');
+
+    if (new_year < 2001) {
+        new_year = 2001;
+    } else if (new_year > 2020) {
+        button.value = "Play"
+    }
+    if (button.value == "Play") {
+        return;
+    }
+    document.getElementById('year').value = new_year;
+    update_year(new_year);
+    setTimeout(() => {
+        loop(new_year + 1);
+    }, 500);
+}
+
 let hansen_layers = []
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -142,5 +160,14 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById('year').addEventListener('change', (event) => {
 		const new_year = event.target.value;
 		update_year(new_year);
+	});
+
+	document.getElementById('play').addEventListener('click', (event) => {
+	    if (event.target.value == "Play") {
+	        document.getElementById('play').value = "Stop";
+	        loop(2001);
+	    } else {
+	        document.getElementById('play').value = "Play";
+	    }
 	});
 });
